@@ -116,9 +116,14 @@ function run() {
             settings.tenant = core.getInput('tenant');
             settings.clientId = core.getInput('clientId');
             settings.clientSecret = core.getInput('clientSecret');
-            settings.addAppInsightsStep = core.getInput('addAppInsightsStep') === true || core.getInput('addAppInsightsStep') === 'true';
-            settings.renumberSteps = core.getInput('renumberSteps') === true || core.getInput('renumberSteps') === 'true';
-            settings.verbose = core.getInput('verbose') === true || core.getInput('verbose') === 'true';
+            settings.addAppInsightsStep =
+                core.getInput('addAppInsightsStep') === true ||
+                    core.getInput('addAppInsightsStep') === 'true';
+            settings.renumberSteps =
+                core.getInput('renumberSteps') === true ||
+                    core.getInput('renumberSteps') === 'true';
+            settings.verbose =
+                core.getInput('verbose') === true || core.getInput('verbose') === 'true';
             let deploymentType = DeploymentType.None;
             core.info('Deploy custom policy GitHub Action v5.3 started.');
             if (settings.clientId === 'test') {
@@ -149,12 +154,12 @@ function run() {
                 defaultVersion: 'beta'
             });
             // Create an array of policy files
-            let filesArray = settings.files.split(",");
-            if (settings.files === "*") {
+            let filesArray = settings.files.split(',');
+            if (settings.files === '*') {
                 deploymentType = DeploymentType.All;
                 filesArray = yield fg([`${settings.folder}/**/*.xml`], { dot: true });
             }
-            else if (settings.files.indexOf(".json") > 0) {
+            else if (settings.files.indexOf('.json') > 0) {
                 deploymentType = DeploymentType.JSON;
                 if (!fs.existsSync(`.github/workflows/${settings.files}`)) {
                     core.setFailed(`Can't find the .github/workflows/${settings.files} file`);
@@ -187,14 +192,15 @@ function run() {
                     if (result && result.length > 0)
                         policyName = result[0];
                     // Replace yourtenant.onmicrosoft.com with the tenant name parameter
-                    if (policyXML.indexOf("yourtenant.onmicrosoft.com") > 0) {
+                    if (policyXML.indexOf('yourtenant.onmicrosoft.com') > 0) {
                         //core.info(`Policy ${filePath} replacing yourtenant.onmicrosoft.com with ${tenant}.`)
-                        policyXML = policyXML.replace(new RegExp("yourtenant.onmicrosoft.com", "gi"), settings.tenant);
+                        policyXML = policyXML.replace(new RegExp('yourtenant.onmicrosoft.com', 'gi'), settings.tenant);
                     }
                     // Use the deployment JSON file to find and replace in the custom policy file
-                    if (deploymentType === DeploymentType.JSON && f.replacements !== undefined) {
+                    if (deploymentType === DeploymentType.JSON &&
+                        f.replacements !== undefined) {
                         for (const r of f.replacements) {
-                            policyXML = policyXML.replace(new RegExp(r.find, "gi"), r.replace);
+                            policyXML = policyXML.replace(new RegExp(r.find, 'gi'), r.replace);
                         }
                     }
                     // Add Azure AppInsights orchestration step at the begging of the collection
@@ -223,24 +229,26 @@ function run() {
         }
         catch (error) {
             const errorText = (_a = error.message) !== null && _a !== void 0 ? _a : error;
+            core.error(error);
+            core.error(errorText);
             core.setFailed(errorText);
         }
     });
 }
 function addAppInsightsOrchestrationStep(xmlStringDocument) {
-    const xmlDoc = new DOMParser().parseFromString(xmlStringDocument, "application/xml");
-    const UserJourneys = xmlDoc.getElementsByTagName("UserJourney");
+    const xmlDoc = new DOMParser().parseFromString(xmlStringDocument, 'application/xml');
+    const UserJourneys = xmlDoc.getElementsByTagName('UserJourney');
     // Iterate through all user journeys
     for (let uj = 0; uj < UserJourneys.length; uj++) {
-        const ParentOrchestrationSteps = UserJourneys[uj].getElementsByTagName("OrchestrationSteps");
+        const ParentOrchestrationSteps = UserJourneys[uj].getElementsByTagName('OrchestrationSteps');
         //<OrchestrationStep Order="1" Type="ClaimsExchange"><ClaimsExchanges><ClaimsExchange Id="AppInsights-Start" TechnicalProfileReferenceId="AppInsights-Start" /></ClaimsExchanges></OrchestrationStep>
-        const OrchestrationStep = xmlDoc.createElement("OrchestrationStep");
-        OrchestrationStep.setAttribute("Type", "ClaimsExchange");
-        OrchestrationStep.setAttribute("Order", "1");
-        const ClaimsExchanges = xmlDoc.createElement("ClaimsExchanges");
-        const ClaimsExchange = xmlDoc.createElement("ClaimsExchange");
-        ClaimsExchange.setAttribute("Id", "AppInsights-Start");
-        ClaimsExchange.setAttribute("TechnicalProfileReferenceId", "AppInsights-Start");
+        const OrchestrationStep = xmlDoc.createElement('OrchestrationStep');
+        OrchestrationStep.setAttribute('Type', 'ClaimsExchange');
+        OrchestrationStep.setAttribute('Order', '1');
+        const ClaimsExchanges = xmlDoc.createElement('ClaimsExchanges');
+        const ClaimsExchange = xmlDoc.createElement('ClaimsExchange');
+        ClaimsExchange.setAttribute('Id', 'AppInsights-Start');
+        ClaimsExchange.setAttribute('TechnicalProfileReferenceId', 'AppInsights-Start');
         OrchestrationStep.appendChild(ClaimsExchanges);
         ClaimsExchanges.appendChild(ClaimsExchange);
         // There is only one OrchestrationSteps element in a UserJourney, add the new element at the first place
@@ -250,13 +258,13 @@ function addAppInsightsOrchestrationStep(xmlStringDocument) {
 }
 // Renumber documents' user journeys, or sub journeys
 function renumberOrchestrationSteps(xmlStringDocument) {
-    const xmlDoc = new DOMParser().parseFromString(xmlStringDocument, "application/xml");
-    const UserJourneys = xmlDoc.getElementsByTagName("UserJourney");
+    const xmlDoc = new DOMParser().parseFromString(xmlStringDocument, 'application/xml');
+    const UserJourneys = xmlDoc.getElementsByTagName('UserJourney');
     for (let uj = 0; uj < UserJourneys.length; uj++) {
-        const OrchestrationSteps = UserJourneys[uj].getElementsByTagName("OrchestrationStep");
+        const OrchestrationSteps = UserJourneys[uj].getElementsByTagName('OrchestrationStep');
         if (OrchestrationSteps !== null && OrchestrationSteps !== undefined) {
             for (let os = 0; os < OrchestrationSteps.length; os++) {
-                OrchestrationSteps[os].setAttribute("Order", os + 1);
+                OrchestrationSteps[os].setAttribute('Order', os + 1);
             }
         }
     }
