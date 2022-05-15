@@ -182,8 +182,8 @@ async function run(): Promise<void> {
     }
   } catch (error: any) {
     const errorText = error.message ?? error
-    core.error(error)
-    core.error(errorText)
+    core.error(error.toString())
+    core.error(JSON.stringify(error))
     core.setFailed(errorText)
   }
 }

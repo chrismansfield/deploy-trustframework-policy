@@ -229,8 +229,8 @@ function run() {
         }
         catch (error) {
             const errorText = (_a = error.message) !== null && _a !== void 0 ? _a : error;
-            core.error(error);
-            core.error(errorText);
+            core.error(error.toString());
+            core.error(JSON.stringify(error));
             core.setFailed(errorText);
         }
     });
