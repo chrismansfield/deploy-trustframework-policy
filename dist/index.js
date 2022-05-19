@@ -24,10 +24,10 @@ class ClientCredentialsAuthProvider {
         this.clientSecret = clientSecret;
         this.scopes = scopes;
         this.cachedToken = null;
-        this.authClient = openid_client_1.Issuer.discover(`https://login.microsoftonline.com/${tenant}/v2.0/.well-known/openid-configuration`).then((issuer) => {
+        this.authClient = openid_client_1.Issuer.discover(`https://login.microsoftonline.com/${tenant}/v2.0/.well-known/openid-configuration`).then(issuer => {
             const client = new issuer.Client({
                 client_id: clientId,
-                client_secret: clientSecret,
+                client_secret: clientSecret
             });
             return client;
         });
@@ -39,7 +39,7 @@ class ClientCredentialsAuthProvider {
                 yield this.acquireNewToken();
             }
             if (!((_a = this.cachedToken) === null || _a === void 0 ? void 0 : _a.access_token)) {
-                throw Error("Failed to acquire an authentication token.");
+                throw Error('Failed to acquire an authentication token.');
             }
             return this.cachedToken.access_token;
         });
@@ -47,16 +47,16 @@ class ClientCredentialsAuthProvider {
     acquireNewToken() {
         return __awaiter(this, void 0, void 0, function* () {
             this.cachedToken = yield (yield this.authClient).grant({
-                grant_type: "client_credentials",
+                grant_type: 'client_credentials',
                 client_id: this.clientId,
                 client_secret: this.clientSecret,
-                scope: this.scopes.join(" "),
+                scope: this.scopes.join(' ')
             });
         });
     }
 }
 exports.ClientCredentialsAuthProvider = ClientCredentialsAuthProvider;
-ClientCredentialsAuthProvider.defaultScope = "https://graph.microsoft.com/.default";
+ClientCredentialsAuthProvider.defaultScope = 'https://graph.microsoft.com/.default';
 
 
 /***/ }),
@@ -217,9 +217,19 @@ function run() {
                     fileStream.push(policyXML);
                     fileStream.push(null); // Indicates end of file/stream
                     // Upload the policy
-                    const response = yield client
-                        .api(`trustFramework/policies/${policyName}/$value`)
-                        .putStream(fileStream);
+                    for (let retries = 0; retries < 3; retries += 1) {
+                        try {
+                            const response = yield client
+                                .api(`trustFramework/policies/${policyName}/$value`)
+                                .putStream(fileStream);
+                        }
+                        catch (e) {
+                            if (e.statusCode !== 504) {
+                                break;
+                            }
+                            core.info("Encountered 504 error, retrying");
+                        }
+                    }
                     core.info(`Policy ${filePath} successfully uploaded.`);
                 }
                 else {
