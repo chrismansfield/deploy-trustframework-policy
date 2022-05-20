@@ -171,7 +171,7 @@ async function run(): Promise<void> {
         fileStream.push(null) // Indicates end of file/stream
 
         // Upload the policy
-
+        core.info(`Trying to upload ${filePath}`)
         for (let retries = 0; retries < 3; retries += 1) {
           try {
             const response = await client
@@ -179,7 +179,7 @@ async function run(): Promise<void> {
               .putStream(fileStream)
           } catch (e) {
             if (e.statusCode !== 504) {
-              break
+              throw e
             }
             core.info('Encountered 504 error, retrying')
           }
