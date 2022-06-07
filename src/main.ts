@@ -166,23 +166,17 @@ async function run(): Promise<void> {
 
         if (settings.verbose) core.info(policyXML)
 
-        const fileStream = new Readable()
-        fileStream.push(policyXML)
-        fileStream.push(null) // Indicates end of file/stream
-
         // Upload the policy
-        core.info(`Trying to upload ${filePath}`)
-        core.info(`Filename = ${policyName}`)
-        core.info(`Contents = ${policyXML}`)
+        core.info(`Trying to upload ${filePath} using name`)
         for (let retries = 0; retries < 3; retries += 1) {
           try {
             const response = await client
               .api(`trustFramework/policies/${policyName}/$value`)
               .header('Content-Type', 'application/xml')
               .put(policyXML)
-            // .putStream(fileStream)
+            core.info(`Server responded with status ${response.statusCode}`)
           } catch (e) {
-            if (e.statusCode >= 504) {
+            if (e.statusCode > 504) {
               throw e
             }
             core.info('Encountered 504 error, retrying')
