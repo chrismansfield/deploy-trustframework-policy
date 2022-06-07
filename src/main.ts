@@ -172,13 +172,15 @@ async function run(): Promise<void> {
 
         // Upload the policy
         core.info(`Trying to upload ${filePath}`)
+        core.info(`Filename = ${policyName}`)
+        core.info(`Contents = ${policyXML}`)
         for (let retries = 0; retries < 3; retries += 1) {
           try {
             const response = await client
               .api(`trustFramework/policies/${policyName}/$value`)
               .header('Content-Type', 'application/xml')
               .put(policyXML)
-              // .putStream(fileStream)
+            // .putStream(fileStream)
           } catch (e) {
             if (e.statusCode >= 504) {
               throw e
