@@ -218,14 +218,18 @@ function run() {
                     fileStream.push(null); // Indicates end of file/stream
                     // Upload the policy
                     core.info(`Trying to upload ${filePath}`);
+                    core.info(`Filename = ${policyName}`);
+                    core.info(`Contents = ${policyXML}`);
                     for (let retries = 0; retries < 3; retries += 1) {
                         try {
                             const response = yield client
                                 .api(`trustFramework/policies/${policyName}/$value`)
-                                .putStream(fileStream);
+                                .header('Content-Type', 'application/xml')
+                                .put(policyXML);
+                            // .putStream(fileStream)
                         }
                         catch (e) {
-                            if (e.statusCode !== 504) {
+                            if (e.statusCode >= 504) {
                                 throw e;
                             }
                             core.info('Encountered 504 error, retrying');
