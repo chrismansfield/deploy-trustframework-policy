@@ -176,9 +176,11 @@ async function run(): Promise<void> {
           try {
             const response = await client
               .api(`trustFramework/policies/${policyName}/$value`)
-              .putStream(fileStream)
+              .header('Content-Type', 'application/xml')
+              .put(policyXML)
+              // .putStream(fileStream)
           } catch (e) {
-            if (e.statusCode !== 504) {
+            if (e.statusCode >= 504) {
               throw e
             }
             core.info('Encountered 504 error, retrying')
