@@ -222,6 +222,7 @@ function run() {
                                 .header('Content-Type', 'application/xml')
                                 .put(policyXML);
                             core.info(`Server responded with status ${response.statusCode}`);
+                            break;
                         }
                         catch (e) {
                             if (e.statusCode > 504) {
