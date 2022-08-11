@@ -168,13 +168,16 @@ async function run(): Promise<void> {
 
         // Upload the policy
         core.info(`Trying to upload ${filePath} using name`)
-        for (let retries = 0; retries < 3; retries += 1) {
+        let success = false
+        for (let retries = 0; retries < 10; retries += 1) {
           try {
             const response = await client
               .api(`trustFramework/policies/${policyName}/$value`)
               .header('Content-Type', 'application/xml')
               .put(policyXML)
+            success = true
             core.info(`Server responded with status ${response.statusCode}`)
+            core.info(`Policy ${filePath} successfully uploaded.`)
             break
           } catch (e) {
             if (e.statusCode > 504) {
@@ -183,8 +186,9 @@ async function run(): Promise<void> {
             core.info('Encountered 504 error, retrying')
           }
         }
-
-        core.info(`Policy ${filePath} successfully uploaded.`)
+        if (!success) {
+          throw new Error('Failed to upload policy')
+        }
       } else {
         core.warning(`Policy ${filePath} not found.`)
       }
